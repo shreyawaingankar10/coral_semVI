@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coral Health Prediction</title>
+    <style>
+        /* Full-screen background video */
+        #background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+        }
+
+        /* Layout container */
+        .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        /* Image preview box */
+        .image-preview {
+            width: 250px;
+            height: 250px;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 15px;
+        }
+
+        /* Buttons */
+        button {
+            margin-top: 15px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: darkblue;
+        }
+
+        /* Prediction result */
+        .result-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-section h2 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop id="background-video">
+        <source src="static/video/sea.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="container">
+        <!-- Left side: Image preview and upload -->
+        <div class="upload-section">
+            <div class="image-preview" id="imagePreview">
+                <span>Image Preview</span>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
+            <button onclick="uploadImage()">Predict</button>
+        </div>
+
+        <!-- Right side: Prediction result -->
+        <div class="result-section">
+            <h2>Prediction Result</h2>
+            <p id="result">Upload an image to get the prediction</p>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            let reader = new FileReader();
+            reader.onload = function(){
+                let preview = document.getElementById("imagePreview");
+                preview.style.backgroundImage = "url('" + reader.result + "')";
+                preview.innerHTML = "";
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function uploadImage() {
+            let input = document.getElementById("imageInput");
+            let file = input.files[0];
+
+            if (!file) {
+                alert("Please select an image first!");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("image", file);
+
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = "Prediction: " + data.result;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+</body>
+</html>
